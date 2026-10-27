@@ -1,32 +1,66 @@
 services:
+  # Base de datos PostgreSQL
+  database:
+    image: postgres:17-alpine
+    container_name: smartcampus-database
+
+    environment:
+      POSTGRES_DB: ${DB_NAME:-smartcampus}
+      POSTGRES_USER: ${DB_USER:-smartcampus}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-smartcampus_password}
+
+    volumes:
+      # Guarda los datos aunque eliminemos el contenedor.
+      - postgres-data:/var/lib/postgresql/data
+
+      # Script de inicializacion del proyecto.
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    networks:
+      - smartcampus-network
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-smartcampus} -d ${DB_NAME:-smartcampus}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+  # API FastAPI
   backend:
-    #construimos la imagen utilizando el Dockerfile 
     build:
       context: .
       dockerfile: Dockerfile
 
     container_name: smartcampus-backend
 
-    #cargamos las variables de entorno
     environment:
       APP_ENV: ${APP_ENV:-development}
-      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/smartcampus.db}
+
+      DB_HOST: database
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-smartcampus}
+      DB_USER: ${DB_USER:-smartcampus}
+      DB_PASSWORD: ${DB_PASSWORD:-smartcampus_password}
+
       HOST: ${HOST:-0.0.0.0}
       PORT: ${PORT:-8000}
 
-    #conectamos el puerto del ordenador con el puerto del contenedor
     ports:
       - "${PORT:-8000}:8000"
 
-    #guardamos la base de datos fuera del contenedor
-    volumes:
-      - smartcampus-data:/data
+    depends_on:
+      database:
+        condition: service_healthy
 
-    #conectamos el servicio a una red propia
     networks:
       - smartcampus-network
 
-    #comprobamos periódicamente que la API sigue funcionando
     healthcheck:
       test:
         [
@@ -38,17 +72,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 10s
 
     restart: unless-stopped
 
 
-#volumen utilizado para conservar la base de datos 
 volumes:
-  smartcampus-data:
+  # Volumen persistente de PostgreSQL.
+  postgres-data:
 
 
-#red utilizada por los servicios del proyecto
 networks:
+  # Red interna para la comunicacion entre servicios.
   smartcampus-network:
     driver: bridge

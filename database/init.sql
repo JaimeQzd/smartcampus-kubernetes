@@ -1,0 +1,3 @@
+-- Inicialización de PostgreSQL para SmartCampus.
+-- La base de datos y el usuario se crean mediante las variables de entorno de PostgreSQL.
+-- Las tablas de la aplicación se crean automáticamente mediante SQLAlchemy al iniciar el backend.

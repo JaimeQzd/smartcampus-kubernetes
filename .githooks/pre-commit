@@ -1,8 +1,11 @@
 #!/bin/sh
 
-echo "Ejecutando las comprobaciones pre-commit..."
+echo "Ejecutando comprobaciones pre-commit..."
 
-#comprobamos la calidad del codigo con Ruff
+# Entramos en el backend porque ahi se encuentran
+# la aplicacion, los tests y las dependencias Python.
+cd backend || exit 1
+
 python -m ruff check .
 
 if [ $? -ne 0 ]; then
@@ -10,15 +13,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
-#ejecutamos los tests unitarios
 python -m pytest tests/test_services.py -v
 
 if [ $? -ne 0 ]; then
     echo "Commit rechazado: existen tests unitarios fallidos."
     exit 1
 fi
-
 
 echo "Todas las comprobaciones superadas."
 exit 0

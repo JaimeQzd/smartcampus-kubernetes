@@ -10,10 +10,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-smartcampus_password}
 
     volumes:
-      # Guarda los datos aunque eliminemos el contenedor.
       - postgres-data:/var/lib/postgresql/data
-
-      # Script de inicializacion del proyecto.
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
     networks:
@@ -31,7 +28,8 @@ services:
 
     restart: unless-stopped
 
-  # API FastAPI
+
+  # API REST FastAPI
   backend:
     build:
       context: ./backend
@@ -77,12 +75,47 @@ services:
     restart: unless-stopped
 
 
+  # Interfaz web
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: smartcampus-frontend
+
+    environment:
+      # Dentro de la red Docker el frontend
+      # encuentra al backend por su nombre de servicio.
+      BACKEND_URL: http://backend:8000
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    networks:
+      - smartcampus-network
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1/ || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    restart: unless-stopped
+
+
 volumes:
-  # Volumen persistente de PostgreSQL.
   postgres-data:
 
 
 networks:
-  # Red interna para la comunicacion entre servicios.
   smartcampus-network:
     driver: bridge

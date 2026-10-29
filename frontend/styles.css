@@ -1,0 +1,49 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    color: #222;
+}
+
+header {
+    background-color: #1f2937;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+main {
+    width: min(1000px, 90%);
+    margin: 2rem auto;
+}
+
+section {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+button {
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+}
+
+#rooms {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.room {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.room h3 {
+    margin-top: 0;
+}

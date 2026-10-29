@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+  namespace: smartcampus
+
+spec:
+  # Service interno del cluster.
+  # El backend accederá a PostgreSQL mediante:
+  # database-service:5432
+  clusterIP: None
+
+  selector:
+    app: database
+
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
